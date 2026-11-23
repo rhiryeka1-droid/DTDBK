@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fleet DT - SITE DBK (57 Unit)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { 
+            font-family: 'Inter', sans-serif; 
+            -webkit-tap-highlight-color: transparent;
+        }
+        /* Custom scrollbar kecil untuk textarea */
+        textarea::-webkit-scrollbar { width: 4px; }
+        textarea::-webkit-scrollbar-track { background: #0f172a; }
+        textarea::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen pb-10 text-xs">
+
+    <!-- Navbar Header Ringkas (Mobile First) -->
+    <header class="bg-slate-900/95 backdrop-blur border-b border-slate-800 sticky top-0 z-30 px-3 py-2.5">
+        <div class="max-w-lg mx-auto flex justify-between items-center gap-2">
+            <div class="flex items-center gap-2">
+                <div class="p-1.5 bg-amber-500/20 border border-amber-500/40 rounded-lg text-amber-400">
+                    <i data-lucide="truck" class="w-4 h-4"></i>
+                </div>
+                <div>
+                    <h1 class="text-sm font-bold tracking-tight text-white flex items-center gap-1.5">
+                        LIST DT - SITE DBK
+                        <span id="syncStatus" class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-medium bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Online
+                        </span>
+                    </h1>
+                    <p class="text-[10px] text-slate-400 leading-tight">Urut Otomatis &bull; Real-time Multi-User</p>
+                </div>
+            </div>
+
+            <!-- Tombol Input Unit -->
+            <button onclick="openModal('unitModal')" class="flex items-center gap-1 px-2.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-lg transition active:scale-95 text-[11px] shadow-md shadow-amber-500/10">
+                <i data-lucide="plus" class="w-3.5 h-3.5"></i> Input Unit
+            </button>
+        </div>
+    </header>
+
+    <main class="max-w-lg mx-auto px-3 pt-3 space-y-3">
+
+        <!-- Summary Cards (3 Kolom Kompak) -->
+        <div class="grid grid-cols-3 gap-2">
+            <div class="bg-slate-900 border border-slate-800 px-2.5 py-2 rounded-xl flex items-center justify-between">
+                <div>
+                    <p class="text-[9px] font-semibold uppercase text-slate-400">Total</p>
+                    <h3 class="text-lg font-extrabold text-white leading-none mt-0.5" id="totalCount">0</h3>
+                </div>
+                <i data-lucide="layers" class="w-4 h-4 text-blue-400 opacity-80"></i>
+            </div>
+
+            <div class="bg-slate-900 border border-emerald-500/20 px-2.5 py-2 rounded-xl flex items-center justify-between">
+                <div>
+                    <p class="text-[9px] font-semibold uppercase text-emerald-400">Ready</p>
+                    <h3 class="text-lg font-extrabold text-emerald-400 leading-none mt-0.5" id="readyCount">0</h3>
+                </div>
+                <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400 opacity-80"></i>
+            </div>
+
+            <div class="bg-slate-900 border border-rose-500/20 px-2.5 py-2 rounded-xl flex items-center justify-between">
+                <div>
+                    <p class="text-[9px] font-semibold uppercase text-rose-400">Breakdown</p>
+                    <h3 class="text-lg font-extrabold text-rose-400 leading-none mt-0.5" id="bdCount">0</h3>
+                </div>
+                <i data-lucide="alert-octagon" class="w-4 h-4 text-rose-400 opacity-80"></i>
+            </div>
+        </div>
+
+        <!-- Kolom Salin Clipboard (Ready & Breakdown) -->
+        <div class="grid grid-cols-2 gap-2">
+            <!-- Ready Copy Box -->
+            <div class="bg-slate-900 border border-emerald-500/30 rounded-xl p-2 flex flex-col space-y-1.5">
+                <div class="flex items-center justify-between">
+                    <span class="text-emerald-400 font-bold text-[10px] flex items-center gap-1">
+                        <i data-lucide="check" class="w-3 h-3"></i> List Ready
+                    </span>
+                    <button onclick="copyToClipboard('readyText')" class="px-2 py-0.5 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 rounded text-[10px] font-semibold transition flex items-center gap-1 active:scale-95">
+                        <i data-lucide="copy" class="w-2.5 h-2.5"></i> Salin
+                    </button>
+                </div>
+                <textarea id="readyText" readonly class="w-full h-16 bg-slate-950 border border-slate-800 rounded-lg p-1.5 text-[10px] leading-tight font-mono text-emerald-300/90 focus:outline-none resize-none"></textarea>
+            </div>
+
+            <!-- Breakdown Copy Box -->
+            <div class="bg-slate-900 border border-rose-500/30 rounded-xl p-2 flex flex-col space-y-1.5">
+                <div class="flex items-center justify-between">
+                    <span class="text-rose-400 font-bold text-[10px] flex items-center gap-1">
+                        <i data-lucide="x" class="w-3 h-3"></i> List BD
+                    </span>
+                    <button onclick="copyToClipboard('bdText')" class="px-2 py-0.5 bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30 rounded text-[10px] font-semibold transition flex items-center gap-1 active:scale-95">
+                        <i data-lucide="copy" class="w-2.5 h-2.5"></i> Salin
+                    </button>
+                </div>
+                <textarea id="bdText" readonly class="w-full h-16 bg-slate-950 border border-slate-800 rounded-lg p-1.5 text-[10px] leading-tight font-mono text-rose-300/90 focus:outline-none resize-none"></textarea>
+            </div>
+        </div>
+
+        <!-- Filter Tabs & Pencarian Kompak -->
+        <div class="flex flex-col gap-2 bg-slate-900 border border-slate-800 p-2 rounded-xl">
+            <div class="flex gap-1.5">
+                <div class="flex bg-slate-950 p-0.5 rounded-lg border border-slate-800 flex-1">
+                    <button onclick="setFilter('all')" id="filter-all" class="flex-1 py-1 rounded-md text-[10px] font-bold transition bg-amber-500 text-slate-950">Semua</button>
+                    <button onclick="setFilter('ready')" id="filter-ready" class="flex-1 py-1 rounded-md text-[10px] font-medium text-slate-400 hover:text-white transition">Ready</button>
+                    <button onclick="setFilter('breakdown')" id="filter-breakdown" class="flex-1 py-1 rounded-md text-[10px] font-medium text-slate-400 hover:text-white transition">BD</button>
+                </div>
+                <div class="relative w-36 sm:w-44">
+                    <i data-lucide="search" class="w-3 h-3 absolute left-2.5 top-2 text-slate-500"></i>
+                    <input type="text" id="searchInput" oninput="renderData()" placeholder="Cari DT..." class="w-full bg-slate-950 border border-slate-800 rounded-lg pl-7 pr-2 py-1 text-[11px] text-white placeholder-slate-500 focus:outline-none focus:border-amber-500">
+                </div>
+            </div>
+        </div>
+
+        <!-- Daftar Unit (Compact List Rows - Huruf dan Baris Agak Kecil) -->
+        <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden divide-y divide-slate-800/80" id="unitList">
+            <!-- Baris data dirender di sini -->
+            <div class="p-4 text-center text-slate-500 text-[11px]">Memuat database online...</div>
+        </div>
+
+        <!-- Toast Notifikasi -->
+        <div id="toast" class="fixed bottom-4 left-1/2 -translate-x-1/2 bg-slate-800 border border-slate-700 text-white px-3 py-2 rounded-xl shadow-2xl flex items-center gap-2 transform translate-y-20 opacity-0 transition-all duration-200 z-50 whitespace-nowrap">
+            <i id="toastIcon" data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-400"></i>
+            <span id="toastMsg" class="text-[11px] font-medium">Notifikasi</span>
+        </div>
+    </main>
+
+    <!-- Modal Input / Edit Unit -->
+    <div id="unitModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-xs hidden items-center justify-center p-3 z-50">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl">
+            <div class="px-4 py-3 border-b border-slate-800 flex justify-between items-center">
+                <h3 id="modalTitle" class="text-sm font-bold text-white">Input Unit Baru</h3>
+                <button onclick="closeModal('unitModal')" class="text-slate-400 hover:text-white p-1">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+            <form id="unitForm" onsubmit="handleFormSubmit(event)" class="p-4 space-y-3">
+                <input type="hidden" id="editDocId">
+                <div>
+                    <label class="block text-[11px] font-medium text-slate-300 mb-1">Nomor / Nama Unit</label>
+                    <input type="text" id="unitName" required placeholder="Contoh: DT 001 atau DT Howo 065" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-medium text-slate-300 mb-1">Status</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <label class="cursor-pointer border border-slate-700 rounded-lg p-2 flex items-center gap-2 text-xs bg-slate-950 has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-500/10">
+                            <input type="radio" name="status" value="ready" checked class="text-emerald-500 focus:ring-0">
+                            <span class="text-emerald-400 font-bold">Ready</span>
+                        </label>
+                        <label class="cursor-pointer border border-slate-700 rounded-lg p-2 flex items-center gap-2 text-xs bg-slate-950 has-[:checked]:border-rose-500 has-[:checked]:bg-rose-500/10">
+                            <input type="radio" name="status" value="breakdown" class="text-rose-500 focus:ring-0">
+                            <span class="text-rose-400 font-bold">Breakdown</span>
+                        </label>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-[11px] font-medium text-slate-300 mb-1">Keterangan Kerusakan (Jika Breakdown)</label>
+                    <input type="text" id="unitReason" placeholder="Contoh: Tyre / Disc Clutch / AC mati" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500">
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeModal('unitModal')" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-xs font-medium text-slate-300">Batal</button>
+                    <button type="submit" class="px-4 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-lg text-xs transition">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Konfirmasi Hapus (Pengganti confirm() bawaan browser) -->
+    <div id="deleteModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-xs hidden items-center justify-center p-3 z-50">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-xs p-4 text-center space-y-3 shadow-2xl">
+            <div class="w-10 h-10 rounded-full bg-rose-500/15 text-rose-400 flex items-center justify-center mx-auto">
+                <i data-lucide="trash-2" class="w-5 h-5"></i>
+            </div>
+            <div>
+                <h4 class="text-sm font-bold text-white">Hapus Unit?</h4>
+                <p class="text-[11px] text-slate-400 mt-1">Unit <span id="deleteUnitName" class="text-white font-bold"></span> akan dihapus dari database online.</p>
+            </div>
+            <div class="flex gap-2 pt-1">
+                <button onclick="closeModal('deleteModal')" class="flex-1 py-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-xs font-medium text-slate-300">Batal</button>
+                <button id="confirmDeleteBtn" class="flex-1 py-1.5 bg-rose-600 hover:bg-rose-700 rounded-lg text-xs font-bold text-white">Hapus</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase Cloud Integration -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, onSnapshot, setDoc, updateDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'dt-dbk-fleet-v2';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+            apiKey: "demo-key",
+            authDomain: "demo.firebaseapp.com",
+            projectId: "demo-project",
+            storageBucket: "demo.appspot.com",
+            messagingSenderId: "123456",
+            appId: "1:123456:web:12345"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let fleetData = [];
+        let currentFilter = 'all';
+        let userAuthenticated = false;
+
+        // Data Awal 57 Unit (Sesuai daftar terbaru)
+        const initialSeedData57 = [
+            { name: "DT 008", status: "ready", reason: "" },
+            { name: "DT 010", status: "ready", reason: "" },
+            { name: "DT 020", status: "ready", reason: "" },
+            { name: "DT 021", status: "ready", reason: "" },
+            { name: "DT 023", status: "ready", reason: "" },
+            { name: "DT 028", status: "ready", reason: "" },
+            { name: "DT 036", status: "ready", reason: "" },
+            { name: "DT 038", status: "ready", reason: "" },
+            { name: "DT 056", status: "ready", reason: "" },
+            { name: "DT Howo 065", status: "ready", reason: "" },
+            { name: "DT 070", status: "ready", reason: "" },
+            { name: "DT 100", status: "ready", reason: "" },
+            { name: "DT 101", status: "ready", reason: "" },
+            { name: "DT 112", status: "ready", reason: "" },
+            { name: "DT 113", status: "ready", reason: "" },
+            { name: "DT Howo 118", status: "ready", reason: "" },
+            { name: "DT 122", status: "ready", reason: "" },
+            { name: "DT 133", status: "ready", reason: "" },
+            { name: "DT 135", status: "ready", reason: "" },
+            { name: "DT 138", status: "ready", reason: "" },
+            { name: "DT 151", status: "ready", reason: "" },
+            { name: "DT 152", status: "ready", reason: "" },
+            { name: "DT 155", status: "ready", reason: "" },
+            { name: "DT 157", status: "ready", reason: "" },
+            { name: "DT 161", status: "ready", reason: "" },
+            { name: "DT 166", status: "ready", reason: "" },
+            { name: "DT 168", status: "ready", reason: "" },
+            { name: "DT 171", status: "ready", reason: "" },
+            { name: "DT 176", status: "ready", reason: "" },
+            { name: "DT 202", status: "ready", reason: "" },
+            { name: "DT 203", status: "ready", reason: "" },
+            { name: "DT 215", status: "ready", reason: "" },
+            { name: "DT 218", status: "ready", reason: "" },
+            { name: "DT 236", status: "ready", reason: "" },
+            { name: "DT 237", status: "ready", reason: "" },
+            { name: "DT 238", status: "ready", reason: "" },
+            { name: "DT 252", status: "ready", reason: "" },
+            { name: "DT 268", status: "ready", reason: "" },
+            { name: "DT 270", status: "ready", reason: "" },
+            { name: "DT 271", status: "ready", reason: "" },
+            { name: "DT 272", status: "ready", reason: "" },
+            { name: "DT 303", status: "ready", reason: "" },
+            { name: "DT 308", status: "ready", reason: "" },
+            { name: "DT 313", status: "ready", reason: "" },
+            { name: "DT 315", status: "ready", reason: "" },
+            { name: "DT 317", status: "ready", reason: "" },
+            { name: "DT 001", status: "breakdown", reason: "Tyre" },
+            { name: "DT 018", status: "breakdown", reason: "Tyre" },
+            { name: "DT 063", status: "breakdown", reason: "Disc Clutch" },
+            { name: "DT 127", status: "breakdown", reason: "Tyre" },
+            { name: "DT 130", status: "breakdown", reason: "AC mati" },
+            { name: "DT 156", status: "breakdown", reason: "Tyre" },
+            { name: "DT 177", status: "breakdown", reason: "Tyre" },
+            { name: "DT 178", status: "breakdown", reason: "Tyre" },
+            { name: "DT 182", status: "breakdown", reason: "Tyre" },
+            { name: "DT 263", status: "breakdown", reason: "Tyre" },
+            { name: "DT 306", status: "breakdown", reason: "Tyre" }
+        ];
+
+        // Koleksi publik spesifik untuk daftar 57 unit agar langsung terisi data terbaru
+        const COLLECTION_NAME = 'fleet_units_57';
+        const getCollectionRef = () => collection(db, 'artifacts', appId, 'public', 'data', COLLECTION_NAME);
+
+        // Fungsi ekstrak angka dari nama unit untuk pengurutan otomatis dari terkecil (misal: DT 001 -> 1, DT Howo 065 -> 65)
+        function extractUnitNumber(name) {
+            const match = name.match(/\d+/);
+            return match ? parseInt(match[0], 10) : 999999;
+        }
+
+        function sortUnitsAscending(list) {
+            return list.sort((a, b) => {
+                const numA = extractUnitNumber(a.name);
+                const numB = extractUnitNumber(b.name);
+                if (numA !== numB) {
+                    return numA - numB;
+                }
+                return a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' });
+            });
+        }
+
+        async function initApp() {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+                userAuthenticated = true;
+            } catch (err) {
+                console.error("Auth error:", err);
+                showToast("Mode offline / gagal autentikasi", true);
+                return;
+            }
+
+            // Listener Real-time Firestore
+            onSnapshot(getCollectionRef(), async (snapshot) => {
+                if (snapshot.empty) {
+                    await seedInitialData();
+                } else {
+                    fleetData = snapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data()
+                    }));
+                    // Urutkan otomatis dari nomor terkecil
+                    sortUnitsAscending(fleetData);
+                    renderData();
+                }
+            }, (err) => {
+                showToast("Gagal menyinkronkan data", true);
+                console.error(err);
+            });
+        }
+
+        async function seedInitialData() {
+            if (!userAuthenticated) return;
+            const sortedSeed = sortUnitsAscending([...initialSeedData57]);
+            const promises = sortedSeed.map((item, index) => {
+                const customId = `dt_${String(index + 1).padStart(3, '0')}`;
+                return setDoc(doc(db, 'artifacts', appId, 'public', 'data', COLLECTION_NAME, customId), {
+                    name: item.name,
+                    status: item.status,
+                    reason: item.reason,
+                    updatedAt: new Date().toISOString()
+                });
+            });
+            await Promise.all(promises);
+        }
+
+        // Ubah status langsung ke Ready atau Breakdown
+        window.setUnitStatus = async (id, targetStatus) => {
+            if (!userAuthenticated) return;
+            const item = fleetData.find(u => u.id === id);
+            if (!item || item.status === targetStatus) return;
+
+            const unitDoc = doc(db, 'artifacts', appId, 'public', 'data', COLLECTION_NAME, id);
+            try {
+                const updatePayload = {
+                    status: targetStatus,
+                    updatedAt: new Date().toISOString()
+                };
+                // Jika diubah ke Ready, kosongkan keterangan breakdown (opsional, tapi rapi)
+                if (targetStatus === 'ready') {
+                    updatePayload.reason = '';
+                }
+                await updateDoc(unitDoc, updatePayload);
+                showToast(`${item.name} -> ${targetStatus.toUpperCase()}`);
+            } catch (err) {
+                showToast("Gagal memperbarui status", true);
+            }
+        };
+
+        // Simpan Input Baru atau Edit
+        window.handleFormSubmit = async (e) => {
+            e.preventDefault();
+            if (!userAuthenticated) return;
+
+            const editId = document.getElementById('editDocId').value;
+            const name = document.getElementById('unitName').value.trim();
+            const status = document.querySelector('input[name="status"]:checked').value;
+            const reason = document.getElementById('unitReason').value.trim();
+
+            if (!name) return;
+
+            try {
+                if (editId) {
+                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', COLLECTION_NAME, editId), {
+                        name, status, reason, updatedAt: new Date().toISOString()
+                    });
+                    showToast(`${name} diperbarui`);
+                } else {
+                    const newDocRef = doc(getCollectionRef());
+                    await setDoc(newDocRef, {
+                        name, status, reason, updatedAt: new Date().toISOString()
+                    });
+                    showToast(`${name} ditambahkan`);
+                }
+                closeModal('unitModal');
+            } catch (err) {
+                showToast("Gagal menyimpan data", true);
+            }
+        };
+
+        // Konfirmasi Hapus Unit (tanpa window.confirm)
+        let pendingDeleteId = null;
+        window.askDeleteUnit = (id, name) => {
+            pendingDeleteId = id;
+            document.getElementById('deleteUnitName').innerText = name;
+            const modal = document.getElementById('deleteModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        };
+
+        document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
+            if (!pendingDeleteId || !userAuthenticated) return;
+            try {
+                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', COLLECTION_NAME, pendingDeleteId));
+                showToast("Unit berhasil dihapus");
+            } catch (err) {
+                showToast("Gagal menghapus unit", true);
+            } finally {
+                pendingDeleteId = null;
+                closeModal('deleteModal');
+            }
+        });
+
+        window.setFilter = (filter) => {
+            currentFilter = filter;
+            ['all', 'ready', 'breakdown'].forEach(f => {
+                const btn = document.getElementById(`filter-${f}`);
+                if (f === filter) {
+                    btn.className = "flex-1 py-1 rounded-md text-[10px] font-bold transition bg-amber-500 text-slate-950";
+                } else {
+                    btn.className = "flex-1 py-1 rounded-md text-[10px] font-medium text-slate-400 hover:text-white transition";
+                }
+            });
+            renderData();
+        };
+
+        window.renderData = () => {
+            const listContainer = document.getElementById('unitList');
+            const searchVal = document.getElementById('searchInput').value.toLowerCase();
+
+            const filtered = fleetData.filter(item => {
+                const matchesFilter = currentFilter === 'all' || item.status === currentFilter;
+                const matchesSearch = item.name.toLowerCase().includes(searchVal) || (item.reason && item.reason.toLowerCase().includes(searchVal));
+                return matchesFilter && matchesSearch;
+            });
+
+            const total = fleetData.length;
+            const readyUnits = fleetData.filter(i => i.status === 'ready');
+            const bdUnits = fleetData.filter(i => i.status === 'breakdown');
+
+            document.getElementById('totalCount').innerText = total;
+            document.getElementById('readyCount').innerText = readyUnits.length;
+            document.getElementById('bdCount').innerText = bdUnits.length;
+
+            updateCopyableTexts(total, readyUnits, bdUnits);
+
+            listContainer.innerHTML = '';
+            if (filtered.length === 0) {
+                listContainer.innerHTML = `<div class="p-6 text-center text-slate-500 text-[11px]">Tidak ada unit yang sesuai.</div>`;
+                return;
+            }
+
+            filtered.forEach((item, idx) => {
+                const isReady = item.status === 'ready';
+                const row = document.createElement('div');
+                row.className = `px-2.5 py-1.5 flex items-center justify-between gap-2 transition hover:bg-slate-800/40 ${!isReady ? 'bg-rose-950/15' : ''}`;
+
+                row.innerHTML = `
+                    <!-- Nomor Urut + Nama Unit + Catatan -->
+                    <div class="flex items-center gap-2 min-w-0 flex-1" onclick="editModal('${item.id}')">
+                        <span class="text-[10px] font-mono text-slate-500 w-5 text-right shrink-0">${idx + 1}.</span>
+                        <div class="min-w-0 flex-1 cursor-pointer">
+                            <div class="flex items-center gap-1.5">
+                                <span class="font-bold text-[11px] truncate ${isReady ? 'text-slate-100' : 'text-rose-300'}">${item.name}</span>
+                                ${item.reason ? `<span class="text-[10px] text-rose-400/90 truncate">: ${item.reason}</span>` : ''}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tombol Ready, Breakdown, Edit & Hapus Ringkas -->
+                    <div class="flex items-center gap-1 shrink-0">
+                        <button onclick="setUnitStatus('${item.id}', 'ready')" title="Set Ready" class="px-1.5 py-0.5 rounded text-[9px] font-bold transition ${isReady ? 'bg-emerald-500 text-slate-950 shadow-xs' : 'bg-slate-800 text-slate-400 hover:text-emerald-400'}">
+                            Ready
+                        </button>
+                        <button onclick="setUnitStatus('${item.id}', 'breakdown')" title="Set Breakdown" class="px-1.5 py-0.5 rounded text-[9px] font-bold transition ${!isReady ? 'bg-rose-500 text-white shadow-xs' : 'bg-slate-800 text-slate-400 hover:text-rose-400'}">
+                            BD
+                        </button>
+                        <button onclick="editModal('${item.id}')" title="Edit Unit / Catatan" class="p-1 text-slate-400 hover:text-amber-400 rounded">
+                            <i data-lucide="pencil" class="w-3 h-3"></i>
+                        </button>
+                        <button onclick="askDeleteUnit('${item.id}', '${item.name}')" title="Hapus Unit" class="p-1 text-slate-500 hover:text-rose-400 rounded">
+                            <i data-lucide="trash-2" class="w-3 h-3"></i>
+                        </button>
+                    </div>
+                `;
+                listContainer.appendChild(row);
+            });
+
+            lucide.createIcons();
+        };
+
+        function updateCopyableTexts(total, readyList, bdList) {
+            let readyFormatted = `UNIT READY - SITE DBK (${readyList.length}/${total}):\n`;
+            readyList.forEach((u, i) => {
+                readyFormatted += `${i + 1}. ${u.name}\n`;
+            });
+            document.getElementById('readyText').value = readyFormatted.trim();
+
+            let bdFormatted = `UNIT BREAKDOWN - SITE DBK (${bdList.length}/${total}):\n`;
+            bdList.forEach((u, i) => {
+                bdFormatted += `${i + 1}. ${u.name}${u.reason ? ' : ' + u.reason : ''}\n`;
+            });
+            document.getElementById('bdText').value = bdFormatted.trim();
+        }
+
+        window.copyToClipboard = (elementId) => {
+            const textarea = document.getElementById(elementId);
+            textarea.select();
+            textarea.setSelectionRange(0, 99999);
+            document.execCommand('copy');
+            showToast("Berhasil disalin ke clipboard!");
+        };
+
+        window.openModal = (modalId) => {
+            document.getElementById('unitForm').reset();
+            document.getElementById('editDocId').value = '';
+            document.getElementById('modalTitle').innerText = 'Input Unit Baru';
+            const modal = document.getElementById(modalId);
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        };
+
+        window.editModal = (id) => {
+            const item = fleetData.find(u => u.id === id);
+            if (!item) return;
+
+            document.getElementById('editDocId').value = item.id;
+            document.getElementById('unitName').value = item.name;
+            document.querySelector(`input[name="status"][value="${item.status}"]`).checked = true;
+            document.getElementById('unitReason').value = item.reason || '';
+
+            document.getElementById('modalTitle').innerText = `Edit ${item.name}`;
+            const modal = document.getElementById('unitModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        };
+
+        window.closeModal = (modalId) => {
+            const modal = document.getElementById(modalId);
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        };
+
+        function showToast(msg, isError = false) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMsg');
+            const toastIcon = document.getElementById('toastIcon');
+
+            toastMsg.innerText = msg;
+            toastIcon.setAttribute('data-lucide', isError ? 'alert-circle' : 'check-circle');
+            toastIcon.className = `w-3.5 h-3.5 ${isError ? 'text-rose-400' : 'text-emerald-400'}`;
+            lucide.createIcons();
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 2500);
+        }
+
+        window.addEventListener('load', () => {
+            lucide.createIcons();
+            initApp();
+        });
+    </script>
+</body>
+</html>
